@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/ {
+    behaviors {
+        rgb_ug: behavior_rgb_underglow {
+            compatible = "zmk,behavior-rgb-underglow";
+            label = "RGB_UG";
+            #binding-cells = <2>;
+        };
+    };
+};

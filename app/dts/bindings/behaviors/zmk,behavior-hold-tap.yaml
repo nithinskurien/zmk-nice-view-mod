@@ -1,0 +1,47 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: Hold or Tap behavior
+
+compatible: "zmk,behavior-hold-tap"
+
+include: two_param.yaml
+
+properties:
+  bindings:
+    type: phandles
+    required: true
+  tapping-term-ms:
+    type: int
+  tapping_term_ms:
+    type: int
+    deprecated: true
+  quick-tap-ms:
+    type: int
+    default: -1
+  quick_tap_ms:
+    type: int
+    deprecated: true
+  global-quick-tap:
+    type: boolean
+    deprecated: true
+  require-prior-idle-ms:
+    type: int
+    default: -1
+  flavor:
+    type: string
+    required: false
+    default: "hold-preferred"
+    enum:
+      - "hold-preferred"
+      - "balanced"
+      - "tap-preferred"
+      - "tap-unless-interrupted"
+  retro-tap:
+    type: boolean
+  hold-trigger-key-positions:
+    type: array
+    required: false
+    default: []
+  hold-trigger-on-release:
+    type: boolean

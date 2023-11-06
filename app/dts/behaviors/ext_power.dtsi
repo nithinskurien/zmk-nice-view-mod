@@ -1,0 +1,15 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/ {
+    behaviors {
+        ext_power: behavior_ext_power {
+            compatible = "zmk,behavior-ext-power";
+            label = "EXTPOWER";
+            #binding-cells = <1>;
+        };
+    };
+};
