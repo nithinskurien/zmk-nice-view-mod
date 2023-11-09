@@ -57,6 +57,8 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
     lv_draw_line_dsc_t line_dsc;
     init_line_dsc(&line_dsc, LVGL_FOREGROUND, 2);
+    lv_draw_line_dsc_t line_dashed_dsc;
+    init_line_dashed_dsc(&line_dashed_dsc, LVGL_FOREGROUND, 1);
 
     // Fill background
     lv_canvas_draw_rect(canvas, 0, 0, CANVAS_SIZE, CANVAS_SIZE, &rect_black_dsc);
@@ -90,6 +92,22 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     lv_canvas_draw_rect(canvas, 0, 21, 68, 42, &rect_white_dsc);
     lv_canvas_draw_rect(canvas, 1, 22, 66, 40, &rect_black_dsc);
 
+    // Draw subgrid
+    lv_point_t line_starts[6] = {
+        {17, 21}, {34, 21}, {51, 21}, {0, 31}, {0, 41}, {0, 51},
+    };
+
+    lv_point_t line_ends[6] = {
+        {17, 61}, {34, 61}, {51, 61}, {67, 31}, {67, 41}, {67, 51},
+    };
+
+    for (int i = 0; i < 6; i++) {
+        lv_point_t points[2];
+        points[0] = line_starts[i];
+        points[1] = line_ends[i];
+        lv_canvas_draw_line(canvas, points, 2, &line_dashed_dsc);
+    }
+    //
     char wpm_text[6] = {};
     snprintf(wpm_text, sizeof(wpm_text), "%d", state->wpm[9]);
     lv_canvas_draw_text(canvas, 35, 45, 30, &label_dsc_wpm, wpm_text);
@@ -173,7 +191,7 @@ static void draw_bottom(lv_obj_t *widget, lv_color_t cbuf[], const struct status
     lv_draw_rect_dsc_t rect_black_dsc;
     init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
     lv_draw_label_dsc_t label_dsc;
-    init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_14, LV_TEXT_ALIGN_CENTER);
+    init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_18, LV_TEXT_ALIGN_CENTER);
 
     // Fill background
     lv_canvas_draw_rect(canvas, 0, 0, CANVAS_SIZE, CANVAS_SIZE, &rect_black_dsc);

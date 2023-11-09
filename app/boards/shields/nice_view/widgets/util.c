@@ -62,6 +62,14 @@ void init_line_dsc(lv_draw_line_dsc_t *line_dsc, lv_color_t color, uint8_t width
     line_dsc->width = width;
 }
 
+void init_line_dashed_dsc(lv_draw_line_dsc_t *line_dsc, lv_color_t color, uint8_t dash_width) {
+    lv_draw_line_dsc_init(line_dsc);
+    line_dsc->color = color;
+    line_dsc->width = dash_width;
+    line_dsc->dash_width = dash_width;
+    line_dsc->dash_gap = 2 * dash_width;
+}
+
 void init_arc_dsc(lv_draw_arc_dsc_t *arc_dsc, lv_color_t color, uint8_t width) {
     lv_draw_arc_dsc_init(arc_dsc);
     arc_dsc->color = color;
