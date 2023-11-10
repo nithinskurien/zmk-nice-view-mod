@@ -20,6 +20,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/events/endpoint_changed.h>
 #include <zmk/events/wpm_state_changed.h>
 #include <zmk/events/layer_state_changed.h>
+#include <zmk/events/caps_state_changed.h>
 #include <zmk/usb.h>
 #include <zmk/ble.h>
 #include <zmk/endpoints.h>
@@ -42,6 +43,10 @@ struct layer_status_state {
 
 struct wpm_status_state {
     uint8_t wpm;
+};
+
+struct caps_lock_state {
+    bool active;
 };
 
 static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
@@ -164,7 +169,26 @@ static void draw_middle(lv_obj_t *widget, lv_color_t cbuf[], const struct status
         {13, 13}, {55, 13}, {34, 34}, {13, 55}, {55, 55},
     };
 
-    for (int i = 0; i < 5; i++) {
+    lv_canvas_draw_arc(canvas, circle_offsets[0][0], circle_offsets[0][1], 13, 0, 359, &arc_dsc);
+    lv_canvas_draw_arc(canvas, circle_offsets[0][0], circle_offsets[0][1], 9, 0, 359,
+                       &arc_dsc_filled);
+
+    char label[2];
+    snprintf(label, sizeof(label), "%d", state->active_profile_index + 1);
+    lv_canvas_draw_text(canvas, circle_offsets[0][0] - 8, circle_offsets[0][1] - 10, 16,
+                        &label_dsc_black, label);
+
+    lv_canvas_draw_arc(canvas, circle_offsets[1][0], circle_offsets[1][1], 13, 0, 359, &arc_dsc);
+
+    if (state->caps_lock_active) {
+        lv_canvas_draw_arc(canvas, circle_offsets[1][0], circle_offsets[1][1], 9, 0, 359,
+                           &arc_dsc_filled);
+    }
+
+    lv_canvas_draw_text(canvas, circle_offsets[1][0] - 8, circle_offsets[1][1] - 10, 16,
+                        (state->caps_lock_active ? &label_dsc_black : &label_dsc), "A");
+
+    for (int i = 2; i < 5; i++) {
         bool selected = i == state->active_profile_index;
 
         lv_canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 13, 0, 359,
@@ -324,6 +348,25 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_wpm_status, struct wpm_status_state, wpm_stat
                             wpm_status_get_state)
 ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
 
+static void set_caps_lock_status(struct zmk_widget_status *widget, struct caps_lock_state state) {
+    widget->state.caps_lock_active = state.active;
+    draw_middle(widget->obj, widget->cbuf2, &widget->state);
+}
+
+static void caps_lock_status_update_cb(struct caps_lock_state state) {
+    struct zmk_widget_status *widget;
+    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_caps_lock_status(widget, state); }
+}
+
+struct caps_lock_state caps_lock_get_state(const zmk_event_t *eh) {
+    const struct zmk_caps_state_changed *ev = as_zmk_caps_state_changed(eh);
+    return (struct caps_lock_state){.active = ev->state};
+}
+
+ZMK_DISPLAY_WIDGET_LISTENER(widget_caps_lock_status, struct caps_lock_state,
+                            caps_lock_status_update_cb, caps_lock_get_state)
+ZMK_SUBSCRIPTION(widget_caps_lock_status, zmk_caps_state_changed);
+
 int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, 160, 68);
@@ -342,6 +385,7 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     widget_output_status_init();
     widget_layer_status_init();
     widget_wpm_status_init();
+    widget_caps_lock_status_init();
 
     return 0;
 }
