@@ -13,6 +13,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display.h>
 #include "status.h"
+#include "anim_widget.h"
 #include <zmk/events/usb_conn_state_changed.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/battery_state_changed.h>
@@ -27,7 +28,12 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/keymap.h>
 #include <zmk/wpm.h>
 
+LV_IMG_DECLARE(display_caps);
+LV_IMG_DECLARE(display_profile);
+
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+
+static struct zmk_widget_anim anim_widget;
 
 struct output_status_state {
     struct zmk_endpoint_instance selected_endpoint;
@@ -154,29 +160,37 @@ static void draw_middle(lv_obj_t *widget, lv_color_t cbuf[], const struct status
     init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
     lv_draw_arc_dsc_t arc_dsc;
     init_arc_dsc(&arc_dsc, LVGL_FOREGROUND, 2);
+    lv_draw_arc_dsc_t arc_dsc_mask;
+    init_arc_dsc(&arc_dsc_mask, LVGL_BACKGROUND, 2);
     lv_draw_arc_dsc_t arc_dsc_filled;
     init_arc_dsc(&arc_dsc_filled, LVGL_FOREGROUND, 9);
     lv_draw_label_dsc_t label_dsc;
     init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_18, LV_TEXT_ALIGN_CENTER);
     lv_draw_label_dsc_t label_dsc_black;
     init_label_dsc(&label_dsc_black, LVGL_BACKGROUND, &lv_font_montserrat_18, LV_TEXT_ALIGN_CENTER);
+    lv_draw_label_dsc_t label_dsc_icons;
+    init_label_dsc(&label_dsc_icons, LVGL_FOREGROUND, &lv_font_montserrat_14, LV_TEXT_ALIGN_CENTER);
+    lv_draw_img_dsc_t img_dsc;
+    lv_draw_img_dsc_init(&img_dsc);
 
     // Fill background
     lv_canvas_draw_rect(canvas, 0, 0, CANVAS_SIZE, CANVAS_SIZE, &rect_black_dsc);
 
     // Draw circles
     int circle_offsets[5][2] = {
-        {13, 13}, {55, 13}, {34, 34}, {13, 55}, {55, 55},
+        {13, 20}, {55, 20}, {0, 40}, {13, 55}, {55, 55},
     };
 
+    // lv_canvas_draw_img(canvas, circle_offsets[0][0], circle_offsets[0][1], &display_profile,
+    // &img_dsc);
+
     lv_canvas_draw_arc(canvas, circle_offsets[0][0], circle_offsets[0][1], 13, 0, 359, &arc_dsc);
-    lv_canvas_draw_arc(canvas, circle_offsets[0][0], circle_offsets[0][1], 9, 0, 359,
-                       &arc_dsc_filled);
+    lv_canvas_draw_arc(canvas, circle_offsets[1][0], circle_offsets[1][1], 13, 0, 359, &arc_dsc);
 
     char label[2];
     snprintf(label, sizeof(label), "%d", state->active_profile_index + 1);
-    lv_canvas_draw_text(canvas, circle_offsets[0][0] - 8, circle_offsets[0][1] - 10, 16,
-                        &label_dsc_black, label);
+    lv_canvas_draw_text(canvas, circle_offsets[0][0] - 8, circle_offsets[0][1] - 10, 16, &label_dsc,
+                        label);
 
     lv_canvas_draw_arc(canvas, circle_offsets[1][0], circle_offsets[1][1], 13, 0, 359, &arc_dsc);
 
@@ -185,25 +199,25 @@ static void draw_middle(lv_obj_t *widget, lv_color_t cbuf[], const struct status
                            &arc_dsc_filled);
     }
 
-    lv_canvas_draw_text(canvas, circle_offsets[1][0] - 8, circle_offsets[1][1] - 10, 16,
-                        (state->caps_lock_active ? &label_dsc_black : &label_dsc), "A");
+    lv_canvas_draw_text(canvas, circle_offsets[1][0] - 7, circle_offsets[1][1] - 11, 16,
+                        (state->caps_lock_active ? &label_dsc_black : &label_dsc),
+                        (state->caps_lock_active ? "A" : "a"));
 
-    for (int i = 2; i < 5; i++) {
-        bool selected = i == state->active_profile_index;
-
-        lv_canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 13, 0, 359,
-                           &arc_dsc);
-
-        if (selected) {
-            lv_canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 9, 0, 359,
-                               &arc_dsc_filled);
-        }
-
-        char label[2];
-        snprintf(label, sizeof(label), "%d", i + 1);
-        lv_canvas_draw_text(canvas, circle_offsets[i][0] - 8, circle_offsets[i][1] - 10, 16,
-                            (selected ? &label_dsc_black : &label_dsc), label);
-    }
+    // icons
+    // bluetooth
+    lv_canvas_draw_arc(canvas, circle_offsets[0][0] + 13, circle_offsets[0][1] + 10, 9, 0, 359,
+                       &arc_dsc_filled);
+    lv_canvas_draw_img(canvas, circle_offsets[0][0] + 8, circle_offsets[0][1] + 1, &display_profile,
+                       &img_dsc);
+    lv_canvas_draw_arc(canvas, circle_offsets[0][0] + 13, circle_offsets[0][1] + 10, 11, 0, 359,
+                       &arc_dsc_mask);
+    // caps lock
+    lv_canvas_draw_arc(canvas, circle_offsets[1][0] - 13, circle_offsets[1][1] - 10, 9, 0, 359,
+                       &arc_dsc_filled);
+    lv_canvas_draw_img(canvas, circle_offsets[1][0] - 20, circle_offsets[1][1] - 19, &display_caps,
+                       &img_dsc);
+    lv_canvas_draw_arc(canvas, circle_offsets[1][0] - 13, circle_offsets[1][1] - 10, 11, 0, 359,
+                       &arc_dsc_mask);
 
     // Rotate canvas
     rotate_canvas(canvas, cbuf);
@@ -379,6 +393,9 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     lv_obj_t *bottom = lv_canvas_create(widget->obj);
     lv_obj_align(bottom, LV_ALIGN_TOP_LEFT, -44, 0);
     lv_canvas_set_buffer(bottom, widget->cbuf3, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
+    lv_obj_t *anim = lv_canvas_create(widget->obj);
+    lv_obj_align(anim, LV_ALIGN_CENTER, -45, 0);
+    zmk_widget_anim_init(&anim_widget, anim);
 
     sys_slist_append(&widgets, &widget->node);
     widget_battery_status_init();
