@@ -123,27 +123,15 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     snprintf(wpm_text, sizeof(wpm_text), "%d", state->wpm[9]);
     lv_canvas_draw_text(canvas, 35, 45, 30, &label_dsc_wpm, wpm_text);
 
-    int max = 0;
-    int min = 256;
-
-    for (int i = 0; i < 10; i++) {
-        if (state->wpm[i] > max) {
-            max = state->wpm[i];
-        }
-        if (state->wpm[i] < min) {
-            min = state->wpm[i];
-        }
-    }
-
+    int max = CONFIG_NICE_VIEW_WIDGET_MAX_WPM;
+    int min = 0;
     int range = max - min;
-    if (range == 0) {
-        range = 1;
-    }
-
+    int saturated_value = 0;
     lv_point_t points[10];
     for (int i = 0; i < 10; i++) {
+        saturated_value = state->wpm[i] > max ? max : state->wpm[i];
         points[i].x = 2 + i * 7;
-        points[i].y = 60 - (state->wpm[i] - min) * 36 / range;
+        points[i].y = 60 - (saturated_value - min) * 36 / range;
     }
     lv_canvas_draw_line(canvas, points, 10, &line_dsc);
 

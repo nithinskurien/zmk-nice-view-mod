@@ -43,6 +43,10 @@ config NICE_VIEW_WIDGET_STATUS
     select LV_FONT_MONTSERRAT_14
     select ZMK_WPM
 
+config NICE_VIEW_WIDGET_MAX_WPM
+    int "Upper limit for WPM for graph"
+    default 120
+
 endif # !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 
 config ZMK_DISPLAY_STATUS_SCREEN_BUILT_IN
