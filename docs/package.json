@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^2.4.0",
-    "@docusaurus/types": "^2.4.0",
+    "@docusaurus/types": "^2.4.3",
     "@tsconfig/docusaurus": "^1.0.7",
     "@types/js-yaml": "^4.0.5",
     "@types/react": "^17.0.58",
