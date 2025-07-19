@@ -1,3 +1,13 @@
+# Custom nice-view widget mod (ZMK)
+
+This is a repo that has a mod for the main driver screen (left side) nice-view widget. It gives a cleaner design to the original widget and also adds functionality to a caps lock indicator.
+- The wpm graph is now capped to 120 wpm with each line reprenting 30 wpm. I was frustated by how the wpm line earlier just showed relative typing speed to what was typed a few seconds ago.
+- The bluetooth profile number is now collapsed to just one small section instead of taking so much space on the screen as earlier
+- There is a custom caps lock indicator and implementation.
+- A looping infinite animation at the bottom 
+
+![](./images/left.gif)
+
 # Zephyr™ Mechanical Keyboard (ZMK) Firmware
 
 [![Discord](https://img.shields.io/discord/719497620560543766)](https://zmk.dev/community/discord/invite)
